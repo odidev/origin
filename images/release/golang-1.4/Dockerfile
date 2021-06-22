@@ -4,7 +4,7 @@
 #
 # The standard name for this image is openshift/origin-release
 #
-FROM openshift/origin-base
+FROM base_image:latest
 
 ENV VERSION=1.4.3 \
     GOARM=5 \
@@ -19,9 +19,14 @@ RUN mkdir $TMPDIR && \
     yum install -y $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all && \
+    if [ `uname -m` = "aarch64" ] ; then \
+    curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protoc-3.17.3-linux-aarch_64.zip | bsdtar -C /usr/local -xf - && \
+    curl  https://dl.google.com/go/go1.13.linux-arm64.tar.gz | tar -C /usr/local -xzf - ; \
+    else \
     curl -L https://github.com/google/protobuf/releases/download/v3.0.0-beta-4/protoc-3.0.0-beta-4-linux-x86_64.zip | bsdtar -C /usr/local -xf - && \
+    curl https://storage.googleapis.com/golang/go$VERSION.linux-amd64.tar.gz | tar -C /usr/local -xzf - ; \
+    fi && \
     chmod ug+x /usr/local/bin/protoc && \
-    curl https://storage.googleapis.com/golang/go$VERSION.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     touch /os-build-image
 
 WORKDIR /go/src/github.com/openshift/origin
